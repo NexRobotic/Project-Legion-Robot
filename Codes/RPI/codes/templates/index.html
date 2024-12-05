@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robot Control Interface</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0 auto;
+      padding-top: 30px;
+    }
+    table {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    td {
+      padding: 8px;
+    }
+    .button {
+      background-color: #2f4468;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 18px;
+      margin: 6px 3px;
+      cursor: pointer;
+      border-radius: 5px;
+       user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+  </style>
+</head>
+<body>
+  <h1>Robot Control Interface</h1>
+  <table>
+    <tr>
+      <td colspan="3" align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('forward');"
+          ontouchstart="sendCommand('forward');"
+          onmouseup="sendCommand('stop');"
+          ontouchend="sendCommand('stop');"
+        >
+          Forward
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('left');"
+          ontouchstart="sendCommand('left');"
+          onmouseup="sendCommand('stop');"
+          ontouchend="sendCommand('stop');"
+        >
+          Left
+        </button>
+      </td>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('stop');"
+          ontouchstart="sendCommand('stop');"
+        >
+          Stop
+        </button>
+      </td>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('right');"
+          ontouchstart="sendCommand('right');"
+          onmouseup="sendCommand('stop');"
+          ontouchend="sendCommand('stop');"
+        >
+          Right
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('backward');"
+          ontouchstart="sendCommand('backward');"
+          onmouseup="sendCommand('stop');"
+          ontouchend="sendCommand('stop');"
+        >
+          Backward
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('handshake');"
+          ontouchstart="sendCommand('handshake');"
+        >
+          Handshake
+        </button>
+      </td>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('handwave');"
+          ontouchstart="sendCommand('handwave');"
+        >
+          Handwave
+        </button>
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('sit');"
+          ontouchstart="sendCommand('sit');"
+        >
+          Sit
+        </button>
+      </td>
+      <td align="center">
+        <button 
+          class="button"
+          onmousedown="sendCommand('dance');"
+          ontouchstart="sendCommand('dance');"
+        >
+          Dance
+        </button>
+      </td>
+    </tr>
+  </table>
+  <script>
+    function sendCommand(command) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/command", true);
+      xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+      xhr.send(JSON.stringify({ action: command }));
+    }
+  </script>
+</body>
+</html>
