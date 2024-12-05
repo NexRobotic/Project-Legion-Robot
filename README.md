@@ -11,11 +11,11 @@ This Repo Have Various Version of the Robot (Basicly All you need)
 
 
 What to DO ?
-    >3d Print the Structure and Pick your Code Version
-    >attach the servos to the structure (Use Servo Pin image for pin connection in media folder) (*without Servo horn)
-    >Use Servo_Config Code to calibrate all the servo to 90
-    >Attach all the servo horn maintaining the initial position (Use Initial position image in media folder) (*IMPORTANT)
-    >Complete the Circuits and Upload/Run main code and enjoy
+1. 3d Print the Structure and Pick your Code Version
+2. attach the servos to the structure (Use Servo Pin image for pin connection in media folder) (*without Servo horn)
+3. Use Servo_Config Code to calibrate all the servo to 90
+4. Attach all the servo horn maintaining the initial position (Use Initial position image in media folder) (*IMPORTANT)
+5. Complete the Circuits and Upload/Run main code and enjoy
 
 Here is the Code Folder Structure 
 ───Codes
