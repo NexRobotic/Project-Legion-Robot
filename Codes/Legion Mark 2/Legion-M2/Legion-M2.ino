@@ -1,36 +1,57 @@
+//Mark 2 : Wheel on legion go Round and Round
+
+
 #include <Servo.h>
 #include <FlexiTimer2.h>
 #include "Legion_config.h"
 #include "Legion.h"
+#include <Adafruit_PWMServoDriver.h>
 
+// Create a PCA9685 object
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+// Servo configuration
+#define SERVOMIN 150  // Minimum pulse length count
+#define SERVOMAX 600  // Maximum pulse length count
+
+//DIctionary
 #define FORWARD 'f'
 #define BACKWARD 'b'
-
 #define LEFT 'l'
 #define RIGHT 'r'
-
-#define STAND 's'
+#define STOP's'
 #define SIT 'i'
 
-#define HELLO 'h'
-#define HANDSHAKE 'm'
+#define HEIGHTUP 'u'
+#define HEIGHTDOWN'v'
 
-#define DANCE 'd'
+#define MOVEFORWARD 'w'
+#define MOVEBACKWARD 'x'
+#define MOVELEFT 'a'
+#define MOVERIGHT 'd'
 
-#define HEADUP 'c'
-#define HEADDOWN 'z'
 
-#define BODYRIGHT 'e'
-#define BODYLEFT 'p'
+#define HANDWAVE 'e'
+#define HANDSHAKE 'g'
 
-// #define PUSH_UP 'p'
-// #define MOON_WALK 'm'
-// #define UP_DOWN 'u'
+ #define DRIVEMODE 'h'
+// #define  'j'
+// #define  'k'
+// #define  'm'
+// #define  'n'
+// #define  'o'
+// #define  'p'
+// #define  'q'
+// #define  't'
+// #define  'Y'
+// #define  'z'
+
+//DIctionary
 
 
 void RC_Control();
 
-const int channelPins[] = {A1, A2, A3, A4, A5, A6};
+const int channelPins[] = { A1, A2, A3, A4, A5, A6 };
 const int numChannels = 6;
 
 unsigned long pulseWidths[numChannels];
@@ -45,7 +66,7 @@ unsigned long TIME_INTERVAL = 35000;  // Timeout in microseconds (adjust based o
 Legion legion;
 
 bool state = true;
-char cmd = STAND;
+char cmd = STOP;
 bool check_service = false;
 
 /* Servos --------------------------------------------------------------------*/
@@ -54,10 +75,28 @@ bool check_service = false;
 void setup() {
   Serial.begin(115200);
   Serial.println("Robot starts initialization");
-  for (int i = 0; i < numChannels; i++) {
-    pinMode(channelPins[i], INPUT);
-  }
+  pwm.begin();
+  pwm.setPWMFreq(60);  // Set frequency to 50 Hz for servos
+  delay(10);
+
+  pinMode(motorPinA1, OUTPUT);
+  pinMode(motorPinA2, OUTPUT);
+  pinMode(motorPinB1, OUTPUT);
+  pinMode(motorPinB2, OUTPUT);
+  pinMode(enA, OUTPUT);
+  pinMode(enB, OUTPUT);
+
+
+  analogWrite(enA, 60);
+  analogWrite(enB, 50);
+
+
+
+  // for (int i = 0; i < numChannels; i++) {
+  //   pinMode(channelPins[i], INPUT);
+  // }
   //initialize default parameter
+  
   legion.set_site(0, x_default - x_offset, y_start + y_step, z_boot);
   legion.set_site(1, x_default - x_offset, y_start + y_step, z_boot);
   legion.set_site(2, x_default + x_offset, y_start, z_boot);
@@ -71,50 +110,119 @@ void setup() {
   FlexiTimer2::set(20, servo_service);
   FlexiTimer2::start();
   Serial.println("Servo service started");
-  //initialize servos
-  servo_attach();
   Serial.println("Servos initialized");
   Serial.println("Robot initialization Complete");
+  
+  legion.stand();
+  //legion.climb();
+}
+
+int angleToPWM(float angle) {
+  return map(angle, 0, 180, SERVOMIN, SERVOMAX);
+}
+
+// Set servo angles using PCA9685
+void setServoAngle(int channel, float angle) {
+  int pwmValue = angleToPWM(angle);
+  pwm.setPWM(channel, 0, pwmValue);
 }
 
 
-void servo_attach(void) {
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 3; j++) {
-      servo[i][j].attach(servo_pin[i][j]);
-      delay(100);
-    }
-  }
-}
-
-void servo_detach(void) {
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 3; j++) {
-      servo[i][j].detach();
-      delay(100);
-    }
-  }
-}
-/*
-  - loop function
-   ---------------------------------------------------------------------------*/
 void loop() {
- RC_Control();
+  // RC_Control();
+  // servicetest();
+  gaits(cmd);
+  //legion.climb();
+
 }
+
+// void serialEvent() {
+//   char tmp = -1;
+//   boolean taken = false;  // is steps already taken?
+
+//   while (Serial.available()) {
+//     state = !state;       // inverse state
+//     tmp = Serial.read();  //Serial.println(cmd);
+//     taken = gaits(tmp);   // steps taken?
+
+//     if (taken)  // basically repeat the previous serial command
+//       cmd = tmp;
+//   }
+// }
 
 void serialEvent() {
-  char tmp = -1;
-  boolean taken = false;  // is steps already taken?
 
+  String command = "";
   while (Serial.available()) {
-    state = !state;       // inverse state
-    tmp = Serial.read();  //Serial.println(cmd);
-    taken = gaits(tmp);   // steps taken?
+    state = !state;  // inverse state
+    char c = (char)Serial.read();
+    if (c == '\n') {  // End of command
+      break;
+    }
+    command += c;
+  }
+  command.trim();  // Remove extra whitespace or newlines
+  Serial.println(command);
+  // Handle movement commands
+  if (command == "f") cmd = FORWARD;
+  else if (command == "b") cmd = BACKWARD;
+  else if (command == "l") cmd = LEFT;
+  else if (command == "r") cmd = RIGHT;
+  else if (command == "s") cmd = STOP;
+  else if (command == "w") cmd = MOVEFORWARD;
+  else if (command == "x") cmd = MOVEBACKWARD;
+  else if (command == "a") cmd = MOVELEFT;
+  else if (command == "d") cmd = MOVERIGHT;
+  else if (command == "h") cmd = DRIVEMODE;
+  else if (command == "u"){
+    legion.adjustheight(true);
+  }
+  else if (command == "v"){
+    legion.adjustheight(false);
+  }
 
-    if (taken)  // basically repeat the previous serial command
-      cmd = tmp;
+
+  else if (command.startsWith("xd,")) {
+    int value = command.substring(3).toInt();  // Extract value
+    //Serial.println(command);
+    legion.adjust('x', value);
+  } else if (command.startsWith("yd,")) {
+    int value = command.substring(3).toInt();  // Extract value
+    legion.adjust('y', value);
+    //Serial.println(command);
+  } else if (command.startsWith("zd,")) {
+    int value = command.substring(3).toInt();  // Extract value
+    legion.adjust('z', value);
+    //Serial.println(command);
+  } else if (command.startsWith("ls,")) {
+    int value = command.substring(3).toInt();  // Extract value
+    legion.adjust('l', value);
+    //Serial.println(command);
+  } else if (command.startsWith("ss,")) {
+    int value = command.substring(3).toInt();  // Extract value
+    analogWrite(enA, value);
+    analogWrite(enB, value);
+    // legion.adjust("ss", value);
+    //Serial.println(command);
   }
 }
+
+// void serialEvent() {
+//   while (Serial.available()) {
+//     char tmp = -1;
+//     boolean taken = false;  // is steps already taken?
+//     state = !state;       // inverse state
+//     tmp = Serial.read();  //Serial.println(cmd);
+//     taken = gaits(tmp);   // steps taken?
+
+//     if (taken)  // basically repeat the previous serial command
+//       cmd = tmp;
+//   }
+// }
+
+
+// Function to process received serial commands
+
 boolean gaits(char cmd) {
   bool taken = true;
   switch (cmd) {
@@ -130,35 +238,61 @@ boolean gaits(char cmd) {
     case LEFT:
       legion.turn_left(1);
       break;
-    case STAND:
+    case STOP:
       legion.stand();
+      legion.MS();
       break;
     case SIT:
       legion.sit();
       break;
-    case HELLO:
+    case MOVEFORWARD:
+      legion.MF();
+      break;
+    case MOVEBACKWARD:
+      legion.MB();
+      break;
+    case MOVELEFT:
+      legion.ML();
+      break;
+    case MOVERIGHT:
+      legion.MR();
+      break;
+    case HANDWAVE:
       legion.hand_wave(3);
       break;
     case HANDSHAKE:
       legion.hand_shake(3);
       break;
-    case HEADUP:
-      legion.head_up(3);
+    case HEIGHTUP:
+      legion.adjustheight(true);
+      //cmd=STOP;
+      taken = false;
       break;
-    case HEADDOWN:
-      legion.head_down(3);
+    case HEIGHTDOWN:
+      legion.adjustheight(false);
+      //cmd=STOP;
+      taken = false;
       break;
-
-    case BODYRIGHT:
-      legion.body_right(15);
+    case DRIVEMODE:
+      legion.drivemode();
+      //cmd=STOP;
+      taken = false;
       break;
-    case BODYLEFT:
-      legion.body_left(15);
-      break;
-
-    case DANCE:
-      legion.body_dance(5);
-      break;
+    // case HEADUP:
+    //   legion.head_up(3);
+    //   break;
+    // case HEADDOWN:
+    //   legion.head_down(3);
+    //   break;
+    // case BODYRIGHT:
+    //   legion.body_right(15);
+    //   break;
+    // case BODYLEFT:
+    //   legion.body_left(15);
+    //   break;
+    // case DANCE:
+    //   legion.body_dance(5);
+    //   break;
 
     default:
       taken = false;
@@ -233,24 +367,26 @@ void polar_to_servo(int leg, float alpha, float beta, float gamma) {
     gamma += 90;
   }
 
-  servo[leg][0].write(alpha);
-  servo[leg][1].write(beta);
-  servo[leg][2].write(gamma);
+  setServoAngle(servo_channels[leg][0], alpha);
+  setServoAngle(servo_channels[leg][1], beta);
+  setServoAngle(servo_channels[leg][2], gamma);
 }
 
 void RC_Control() {
   pulseWidths[0] = pulseIn(channelPins[0], HIGH, TIME_INTERVAL);
   pulseWidths[1] = pulseIn(channelPins[1], HIGH, TIME_INTERVAL);
   pulseWidths[2] = pulseIn(channelPins[2], HIGH, TIME_INTERVAL);
-  pulseWidths[3] = pulseIn(channelPins[3], HIGH, TIME_INTERVAL); 
+  pulseWidths[3] = pulseIn(channelPins[3], HIGH, TIME_INTERVAL);
   pulseWidths[4] = pulseIn(channelPins[4], HIGH, TIME_INTERVAL);
   // pulseWidths[5] = pulseIn(channelPins[5], HIGH, TIME_INTERVAL);
 
   // Serial.println(pulseWidths[0]);
   // Serial.println(pulseWidths[1]);
 
-  channelValues[0] = (pulseWidths[0] > 1500) ? 1 : (pulseWidths[0] < 1100) ? -1 : 0;
-  channelValues[1] = (pulseWidths[1] > 1500) ? 1 : (pulseWidths[1] < 1100) ? -1: 0;
+  channelValues[0] = (pulseWidths[0] > 1500) ? 1 : (pulseWidths[0] < 1100) ? -1
+                                                                           : 0;
+  channelValues[1] = (pulseWidths[1] > 1500) ? 1 : (pulseWidths[1] < 1100) ? -1
+                                                                           : 0;
   // channelValues[2] = (pulseWidths[2] > 1500) ? 1 : (pulseWidths[2] < 1100) ? -1 : 0;
   // channelValues[3] = (pulseWidths[3] > 1500) ? 1 : (pulseWidths[3] < 1100) ? -1 : 0;
   // channelValues[4] = (pulseWidths[4] > 1500) ? 1 : (pulseWidths[4] < 1100) ? -1: 0;
@@ -274,7 +410,7 @@ void RC_Control() {
       tmp2 = FORWARD;
     }
   } else {
-    tmp2 = STAND;  // Default to STAND if no valid channel values
+    tmp2 = STOP;  // Default to STAND if no valid channel values
   }
 
   // heightValue = map(pulseWidths[2], 1000, 2000, 0, 100);  // Assuming 1000 to 2000 as pulse width range
