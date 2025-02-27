@@ -9,6 +9,10 @@ This Repo Have Various Version of the Robot (Basicly All you need)
 4. ESP32 (Since FlexiTimer2.h is not working on ESP Boards, i need to Find another way to Work on this Version any, 'IF ANY IDEA PLEASE CONTRIBUTE')
 5. raspberri pi (This is The python Version, I am Using RPI 4 and Servo Driver for AI and ML Integration)
 
+and Legion MARK 2 (this is the most advanced version of all)
+watch the Youtube Video here 
+[![Legion MARK 2](https://img.youtube.com/vi/k1hns6NKTCY/0.jpg)](https://www.youtube.com/watch?v=k1hns6NKTCY)
+
 What to DO ?
 1. 3d Print the Structure and Pick your Code Version
 2. attach the servos to the structure (Use Servo Pin image for pin connection in media folder) (*without Servo horn)
